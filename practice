@@ -1,0 +1,134 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# Load the dataset
+dataset = pd.read_csv('lensexport.csv')
+
+# Handle missing values by replacing NaN with an empty string
+dataset['Abstract'].fillna('', inplace=True)
+
+# Extract abstracts from the dataset
+abstracts = dataset['Abstract']
+
+# Initialize the TF-IDF vectorizer
+tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
+
+# Fit the vectorizer to the abstracts and transform the abstracts into TF-IDF matrix
+tfidf_matrix = tfidf_vectorizer.fit_transform(abstracts)
+
+# Get feature names (words) from the TF-IDF vectorizer
+feature_names = tfidf_vectorizer.get_feature_names_out()
+
+# Function to extract keywords for each abstract
+def extract_keywords(abstract, feature_names, tfidf_matrix):
+    abstract_index = abstracts[abstracts == abstract].index[0]  # Get the index of the abstract
+    tfidf_scores = tfidf_matrix[abstract_index].toarray().flatten()  # Get TF-IDF scores for the abstract
+    keyword_indices = tfidf_scores.argsort()[-2:][::-1]  # Get indices of top 2 TF-IDF scores
+    keywords = [feature_names[idx] for idx in keyword_indices]  # Get corresponding words from feature names
+    return keywords
+
+# Generate keywords for each abstract
+keywords_list = []
+for abstract in abstracts:
+    keywords = extract_keywords(abstract, feature_names, tfidf_matrix)
+    keywords_list.append(", ".join(keywords))  # Convert list of keywords to a comma-separated string
+
+# Add a new column named "Keyword" to the dataset and populate it with the generated keywords
+dataset['Keyword'] = keywords_list
+
+# Save the updated dataset back to the CSV file
+dataset.to_csv('lensexport_with_keywords.csv', index=False)
+
+
+
+import pandas as pd
+
+# Load the dataset
+dataset = pd.read_csv('lensexport.csv')
+
+# Define technical sectors related to IDS
+technical_sectors = {
+    'Network Security': ['packet', 'connection', 'tcp', 'ip', 'port', 'protocol', 'firewall', 'traffic', 'network'],
+    'Anomaly Detection': ['anomalous', 'behavior', 'intrusion', 'suspicious', 'anomaly', 'abnormal', 'unexpected'],
+    'Machine Learning': ['machine', 'learning', 'algorithm', 'classifier', 'model', 'neural', 'prediction', 'pattern', 'classification'],
+    'Data Analysis': ['data', 'analysis', 'statistical', 'analytics', 'measurement', 'analysis', 'processing'],
+    'Cyber Threat Intelligence': ['threat', 'attack', 'vulnerability', 'signature', 'malicious', 'threat', 'alert', 'attack', 'detection'],
+    'Encryption & Cryptography': ['cryptographic', 'encryption', 'decryption', 'cryptography', 'hash', 'signature'],
+    'Cloud Security': ['cloud', 'virtual', 'container', 'cloud', 'server', 'service', 'platform', 'cloud'],
+    'IoT Security': ['iot', 'internet', 'things', 'sensor', 'device', 'wireless', 'rf', 'iot'],
+    'Endpoint Security': ['endpoint', 'host', 'terminal', 'client', 'endpoint', 'endpoint', 'endpoint'],
+    'Incident Response': ['incident', 'response', 'mitigation', 'forensic', 'investigation', 'remediation']
+    # Add more sectors as needed
+}
+
+# Function to assign keywords to technical sectors
+def assign_sector(keyword):
+    for sector, keywords in technical_sectors.items():
+        if any(kw in keyword for kw in keywords):
+            return sector
+    return 'Other'
+
+# Preprocess abstracts
+dataset['Abstract'] = dataset['Abstract'].fillna('')
+abstracts = dataset['Abstract']
+
+# Initialize a dictionary to store keywords for each sector
+sector_keywords = {sector: set() for sector in technical_sectors}
+
+# Iterate through abstracts and assign keywords to sectors
+for abstract in abstracts:
+    words = abstract.split()
+    for word in words:
+        sector = assign_sector(word.lower())
+        if sector != 'Other':
+            sector_keywords[sector].add(word)
+
+# Add columns for each technical sector with keywords
+for sector, keywords in sector_keywords.items():
+    dataset[sector + ' Keywords'] = dataset['Abstract'].apply(lambda x: ' '.join(keyword for keyword in keywords if keyword in x.lower()))
+
+# Save the updated dataset to a new CSV file
+dataset.to_csv('updated_dataset_with_keywords.csv', index=False)
+
+
+#import pandas as pd
+#from sklearn.feature_extraction.text import TfidfVectorizer
+
+# Load the dataset
+#dataset = pd.read_csv('lensexport.csv')
+
+# Handle missing values by replacing NaN with an empty string
+#dataset['Abstract'].fillna('', inplace=True)
+
+# Extract abstracts from the dataset
+#abstracts = dataset['Abstract']
+
+# Initialize the TF-IDF vectorizer
+#tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
+
+# Fit the vectorizer to the abstracts and transform the abstracts into TF-IDF matrix
+#tfidf_matrix = tfidf_vectorizer.fit_transform(abstracts)
+
+# Get feature names (words) from the TF-IDF vectorizer
+#feature_names = tfidf_vectorizer.get_feature_names_out()
+
+# Function to extract keywords for each abstract
+#def extract_keywords(abstract, feature_names, tfidf_matrix):
+ ##   abstract_index = abstracts[abstracts == abstract].index[0]  # Get the index of the abstract
+   # tfidf_scores = tfidf_matrix[abstract_index].toarray().flatten()  # Get TF-IDF scores for the abstract
+    #keyword_indices = tfidf_scores.argsort()[-5:][::-1]  # Get indices of top 5 TF-IDF scores
+    #keywords = [feature_names[idx] for idx in keyword_indices]  # Get corresponding words from feature names
+    #return keywords
+
+# Generate keywords for each abstract
+#abstract_keywords = {}
+#for abstract in abstracts:
+ #   keywords = extract_keywords(abstract, feature_names, tfidf_matrix)
+  #  abstract_keywords[abstract] = keywords
+
+# Print keywords for each abstract
+#for abstract, keywords in abstract_keywords.items():
+ #   print(f"Abstract: {abstract}")
+  #  print("Keywords:", ", ".join(keywords))
+   # print()
+
